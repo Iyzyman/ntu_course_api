@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
   res.send('Testing')
 })
 
-app.get('/api/courses', async (req, res) => {
+app.get('/api/discover', async (req, res) => {
   // return an array of schools
   // for each school, an array of courses, course count
   
@@ -93,7 +93,6 @@ app.get('/api/courses', async (req, res) => {
   */
 
 });
-
 
 
 app.listen(port, () => console.log(`Listening on port ${port}...`));
