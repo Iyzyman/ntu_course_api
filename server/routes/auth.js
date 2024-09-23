@@ -65,6 +65,7 @@ router.post('/login', async (req, res) => {
     res.send(error)
   } else {
     // get frontend to save the response (user session) as cookie in local storage
+    // likely will need to provide access_token in authorization header when making API requests as a specific user
     res.send(data)
 
     /*  Example 
