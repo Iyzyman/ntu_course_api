@@ -11,8 +11,6 @@ router.get('/', async (req, res) => {
     .select('*')
     .range(0, 10)
 
-  // res.send(courses);
-
   hashMap = {}
 
   for (let course of courses) {
@@ -42,27 +40,8 @@ router.get('/', async (req, res) => {
     faculty.push(faculty[1][0].length)
   }
 
-  // res.send(hashMap)
-  res.send(finalArray)
-
   /* 
-   HashMap should look like this:
-  {
-    'SOH': [coursesCount, [{
-      'Course Code': '',
-      'Course Title':'',    
-      .... 
-    }, 
-    {
-      'Course Code': '',
-      'Course Title':'',    
-      .... 
-    }, 
-    ....
-  ]]
-  }
-  
-  Final array should look like this:
+  response should look like this:
   [{
     'faculty': '',
     'courses': [],
@@ -74,10 +53,23 @@ router.get('/', async (req, res) => {
     'courseCount': '', 
   }]
 
-  Current array looks like:
-  [ schoolName, [ array of courses ], coursesCount]
-
+  finalArray looks like:
+  [ [ schoolName, [ array of courses ], coursesCount] ,  [ schoolName, [ array of courses ], coursesCount] ]
   */
+
+  const response = []
+
+  for (let faculty of finalArray) {
+    let newFaculty = {
+      faculty: faculty[0],
+      courses: faculty[1][0],
+      coursesCount: faculty[2],
+    }
+
+    response.push(newFaculty)
+  }
+
+  res.send(response)
 })
 
 module.exports = router
