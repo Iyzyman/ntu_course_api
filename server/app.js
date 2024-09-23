@@ -30,4 +30,7 @@ app.use('/api/discover', discoverRouter)
 const authRouter = require('./routes/auth')
 app.use('/api/auth', authRouter)
 
+const reviewRouter = require('./routes/review')
+app.use('/api/review', reviewRouter)
+
 app.listen(port, () => console.log(`Listening on port ${port}...`))
