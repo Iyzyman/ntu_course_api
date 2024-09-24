@@ -12,7 +12,6 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // Fetch the course details directly from the CourseData table including prerequisites and tags
     let { data: course, error } = await supabase
       .from('CourseData')
       .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')

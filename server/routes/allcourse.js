@@ -5,7 +5,6 @@ const router = express.Router();
 // Route to get all courses
 router.get('/all', async (req, res) => {
   try {
-    // Fetch all courses from the CourseData table, now including prerequisites and tags
     let { data: courses, error } = await supabase
       .from('CourseData')
       .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags'); 

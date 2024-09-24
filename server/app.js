@@ -54,7 +54,5 @@ app.use('/api/course', allcoursesRouter);
 const reviewRouter = require('./routes/review')
 app.use('/api/review', reviewRouter)
 
-//API to return all Courses
-
 
 app.listen(port, () => console.log(`Listening on port ${port}...`))

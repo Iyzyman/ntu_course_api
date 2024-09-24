@@ -20,14 +20,13 @@ router.get('/', async (req, res) => {
     return res.status(400).send({ error: 'Invalid or missing time period. Choose 3, 6, or 12.' });
   }
 
-  // Map time period to SQL-compatible interval
   const timePeriodInterval = getTimePeriodInterval(time_period);
   if (!timePeriodInterval) {
     return res.status(400).send({ error: 'Invalid time period provided.' });
   }
 
   try {
-    // Call the Supabase RPC (Remote Procedure Call) to get the trending courses
+    // Call the Supabase RPC
     let { data: trendingCourses, error } = await supabase
       .rpc('get_trending_courses', { time_period: timePeriodInterval });
 

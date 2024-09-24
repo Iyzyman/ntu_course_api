@@ -12,7 +12,6 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // Query for courses by faculty, now including the tags and prerequisites directly from CourseData
     let { data: coursesByFaculty, error } = await supabase
       .from('CourseData')
       .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')

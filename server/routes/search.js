@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // Fetch data from 'CourseData' table, searching by course_code or course_title, now including prerequisites and tags
+    // Fetch data from 'CourseData' table, searching by course_code or course_title
     let { data: courses, error } = await supabase
       .from('CourseData')
       .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')
