@@ -16,6 +16,7 @@ router.post('/putReview', async (req, res) => {
         'Overall Workload': req.body['rating']['Overall Workload'],
       },
       user_id: req.body['user_id'],
+      displayName: req.body['displayName'],
       review_text: req.body['review_text'],
       course_date: req.body['course_date'], // in the form of '2023 Semester 1', describes when course was taken
       recommended: req.body['recommended'],
@@ -40,17 +41,41 @@ router.get('/:id', async (req, res) => {
     .select('ID')
     .eq('courseCode', req.params.id)
 
+  // for calculating aggregate ratings
+  let contentUsefulness = 0
+  let lectureClarity = 0
+  let assignmentDifficulty = 0
+  let teamDep = 0
+  let overallWorkload = 0
+
+  for (let review of Reviews) {
+    contentUsefulness += parseInt(review['ratingNew']['Content Usefulness'])
+    lectureClarity += parseInt(review['ratingNew']['Lecture Clarity'])
+    assignmentDifficulty += parseInt(
+      review['ratingNew']['Assignment Difficulty'],
+    )
+    teamDep += parseInt(review['ratingNew']['Team Dependency'])
+    overallWorkload += parseInt(review['ratingNew']['Overall Workload'])
+  }
+
+  contentUsefulness = contentUsefulness / Reviews.length
+  lectureClarity = lectureClarity / Reviews.length
+  assignmentDifficulty = assignmentDifficulty / Reviews.length
+  teamDep = teamDep / Reviews.length
+  overallWorkload = overallWorkload / Reviews.length
+
   const response = {
     course_id: CourseCode[0]['ID'],
     rating: {
-      'Content Usefulness': null,
-      'Lecture Clarity': null,
-      'Assignment Difficulty': null,
-      'Team Dependency': null,
-      'Overall Workload': null,
+      'Content Usefulness': contentUsefulness,
+      'Lecture Clarity': lectureClarity,
+      'Assignment Difficulty': assignmentDifficulty,
+      'Team Dependency': teamDep,
+      'Overall Workload': overallWorkload,
     },
     reviews: Reviews,
   }
+
   res.send(response)
 })
 
