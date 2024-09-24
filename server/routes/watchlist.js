@@ -41,6 +41,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    // Check if the course is already in the user's watchlist
     let { data: existingEntry } = await supabase
       .from('WatchList')
       .select('*')
@@ -52,10 +53,18 @@ router.post('/', async (req, res) => {
       return res.status(400).send({ error: 'Course is already in the watchlist' });
     }
 
+    // Add the course to the watchlist
     await supabase.from('WatchList').insert([{ user_id, course_code }]);
+
+    // Increment the watchlists count in CourseData
+    await supabase
+      .from('CourseData')
+      .update({ watchlists: supabase.raw('watchlists + 1') })  // Increment watchlists
+      .eq('course_code', course_code);
 
     res.status(200).send({ message: 'Course added to watchlist successfully' });
   } catch (err) {
+    console.error('Error adding course to watchlist:', err);
     res.status(500).send({ error: 'Internal server error' });
   }
 });
@@ -69,14 +78,22 @@ router.delete('/', async (req, res) => {
   }
 
   try {
+    // Remove the course from the watchlist
     await supabase
       .from('WatchList')
       .delete()
       .eq('user_id', user_id)
       .eq('course_code', course_code);
 
+    // Decrement the watchlists count in CourseData
+    await supabase
+      .from('CourseData')
+      .update({ watchlists: supabase.raw('watchlists - 1') })  // Decrement watchlists
+      .eq('course_code', course_code);
+
     res.status(200).send({ message: 'Course removed from watchlist successfully' });
   } catch (err) {
+    console.error('Error removing course from watchlist:', err);
     res.status(500).send({ error: 'Internal server error' });
   }
 });

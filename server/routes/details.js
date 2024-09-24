@@ -12,39 +12,27 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // Fetch the course details from the CourseData table based on the course_code
+    // Fetch the course details directly from the CourseData table including prerequisites and tags
     let { data: course, error } = await supabase
-      .from('CourseData')  // CourseData table where course information is stored
-      .select('course_code, course_title, course_description, like_count, aus, faculty')  // Specify the columns you want to fetch
+      .from('CourseData')
+      .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')
       .eq('course_code', course_code)
-      .single();  // Fetch a single row
+      .single();
 
     if (error) {
+      console.error('Error fetching course details:', error);
       return res.status(500).send({ error: 'Error fetching course details' });
     }
 
-    // Check if course exists
     if (!course) {
       return res.status(404).send({ message: 'Course not found' });
     }
 
-    // Fetch the prerequisite course code from the CoursePrerequisites table
-    let { data: prerequisite, error: prereqError } = await supabase
-      .from('CoursePrerequisites')
-      .select('prerequisite_code')
-      .eq('course_code', course_code)
-      .single();  // Fetch a single row for the prerequisite
-
-    if (prerequisite) {
-      course.prerequisite_code = prerequisite.prerequisite_code;
-    } else {
-      course.prerequisite_code = null;  // If no prerequisite is found, set to null
-    }
-
-    // Return the course details including the prerequisite course code
+    // Return the course details directly
     res.status(200).send(course);
 
   } catch (err) {
+    console.error('Internal server error:', err);
     res.status(500).send({ error: 'Internal server error' });
   }
 });
