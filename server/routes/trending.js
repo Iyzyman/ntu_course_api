@@ -40,10 +40,10 @@ router.get('/', async (req, res) => {
     }
 
     // Fetch detailed information about the courses
-    const courseCodes = trendingCourses.map(course => course.course_code);
+    const courseCodes = trendingCourses.map(course => course.course_code); // Use 'course_code' instead of 'code'
 
     // Modify the query to include the faculty filter if provided
-    let courseQuery = supabase.from('CourseData').select('*').in('course_code', courseCodes);
+    let courseQuery = supabase.from('CourseData').select('*').in('code', courseCodes);
     
     if (faculty) {
       courseQuery = courseQuery.eq('faculty', faculty); // Apply faculty filter if provided
@@ -59,7 +59,7 @@ router.get('/', async (req, res) => {
     // Combine course details with like counts
     const result = courseDetails.map(course => ({
       ...course,
-      like_count: trendingCourses.find(tc => tc.course_code === course.course_code).like_count
+      likes: trendingCourses.find(tc => tc.course_code === course.code).likes
     }));
 
     res.status(200).send(result);

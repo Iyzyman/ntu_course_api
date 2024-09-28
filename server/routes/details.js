@@ -14,23 +14,23 @@ router.get('/', async (req, res) => {
   try {
     let { data: course, error } = await supabase
       .from('CourseData')
-      .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')
-      .eq('course_code', course_code)
+      .select('code, title, description, aus, school, likes, watchlists, color, prerequisites, tags')
+      .eq('code', course_code)
       .single();
 
     const courseDetails = {
-      code: course.course_code,
-      title: course.course_title,
-      description: course.course_description,
+      code: course.code,
+      title: course.title,
+      description: course.description,
       aus: course.aus,
-      school: course.faculty,
+      school: course.school,
       likes: course.likes,
       watchlists: course.watchlists,
       color: course.color,
       prerequisites: course.prerequisites ?? [],
       tags: course.tags,
-      key: course.course_code,
-      slug: course.course_code,
+      key: course.code,
+      slug: course.code,
     };
 
     if (courseDetails.prerequisites.length > 0) {
@@ -39,20 +39,20 @@ router.get('/', async (req, res) => {
       // Fetch details for each prerequisite
       const { data: prerequisiteCourses, error: prerequisiteError } = await supabase
         .from('CourseData')
-        .select('course_code, course_title, likes, watchlists, color')
-        .in('course_code', prerequisiteCodes); // Using the `in` clause to get all at once
+        .select('code, title, likes, watchlists, color')
+        .in('code', prerequisiteCodes); // Using the `in` clause to get all at once
     
       if (prerequisiteError) {
         console.error("Error fetching prerequisites:", prerequisiteError);
       } else {
         const mappedPrerequisites = prerequisiteCourses.map(prerequisite => ({
-          code: prerequisite.course_code,
-          title: prerequisite.course_title,
+          code: prerequisite.code,
+          title: prerequisite.title,
           likes: prerequisite.likes,
           watchlists: prerequisite.watchlists,
           color: prerequisite.color,
-          key: prerequisite.course_code,
-          slug: prerequisite.course_code,
+          key: prerequisite.code,
+          slug: prerequisite.code,
         }));
     
         courseDetails.prerequisites = mappedPrerequisites;

@@ -14,8 +14,8 @@ router.get('/', async (req, res) => {
   try {
     let { data: coursesByFaculty, error } = await supabase
       .from('CourseData')
-      .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')
-      .eq('faculty', faculty);  // Filter by faculty
+      .select('code, title, description, aus, school, likes, watchlists, color, prerequisites, tags')
+      .eq('school', faculty);  // Filter by faculty
 
     if (error) {
       return res.status(500).send({ error: error.message });
