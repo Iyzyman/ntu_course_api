@@ -18,23 +18,8 @@ router.get('/', async (req, res) => {
       .eq('code', course_code)
       .single();
 
-    const courseDetails = {
-      code: course.code,
-      title: course.title,
-      description: course.description,
-      aus: course.aus,
-      school: course.school,
-      likes: course.likes,
-      watchlists: course.watchlists,
-      color: course.color,
-      prerequisites: course.prerequisites ?? [],
-      tags: course.tags,
-      key: course.code,
-      slug: course.code,
-    };
-
-    if (courseDetails.prerequisites.length > 0) {
-      const prerequisiteCodes = courseDetails.prerequisites;
+    if (course.prerequisites && course.prerequisites.length > 0) {
+      const prerequisiteCodes = course.prerequisites;
     
       // Fetch details for each prerequisite
       const { data: prerequisiteCourses, error: prerequisiteError } = await supabase
@@ -45,17 +30,7 @@ router.get('/', async (req, res) => {
       if (prerequisiteError) {
         console.error("Error fetching prerequisites:", prerequisiteError);
       } else {
-        const mappedPrerequisites = prerequisiteCourses.map(prerequisite => ({
-          code: prerequisite.code,
-          title: prerequisite.title,
-          likes: prerequisite.likes,
-          watchlists: prerequisite.watchlists,
-          color: prerequisite.color,
-          key: prerequisite.code,
-          slug: prerequisite.code,
-        }));
-    
-        courseDetails.prerequisites = mappedPrerequisites;
+        course.prerequisites = prerequisiteCourses;
       }
     }
 
@@ -69,7 +44,7 @@ router.get('/', async (req, res) => {
     }
 
     // Return the course details directly
-    res.status(200).send(courseDetails);
+    res.status(200).send(course);
 
   } catch (err) {
     console.error('Internal server error:', err);

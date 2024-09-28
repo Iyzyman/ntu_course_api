@@ -2,7 +2,7 @@ const express = require('express')
 const supabase = require('../supabase')
 const router = express.Router()
 
-const facultyMap = {
+const schoolMap = {
   SPMS: {description: 'School of Physical and Mathematical Sciences'},
   CCEB: {
     description: 'School of Chemistry, Chemical Engineering and Biotechnology',
@@ -36,57 +36,46 @@ router.get('/', async (req, res) => {
   hashMap = {}
 
   for (let course of courses) {
-    if (!hashMap[course.faculty]) {
-      hashMap[course.faculty] = {
+    if (!hashMap[course.school]) {
+      hashMap[course.school] = {
         courses: [],
         courseKeys: [],
       }
-      hashMap[course.faculty].courses.push({
-        key: course.course_code,
-        code: course.course_code,
-        title: course.course_title,
-        description: course.course_description ?? '',
-        likes: course.likes,
-        watchlists: course.watchlists,
-        prerequisites: course.prerequisites ?? [],
-        school: course.faculty,
-        slug: course.course_code,
-        image: course.color,
-      })
-      hashMap[course.faculty].courseKeys.push(course.course_code)
-    } else {
+    
+    } 
       // console.log(hashMap[course.courseCode]);
-      hashMap[course.faculty].courses.push({
-        key: course.course_code,
-        code: course.course_code,
-        title: course.course_title,
-        description: course.course_description ?? '',
+      hashMap[course.school].courseKeys.push(course.code)
+      hashMap[course.school].courses.push({
+        key: course.code,
+        code: course.code,
+        title: course.title,
+        description: course.description ?? '',
         likes: course.likes,
         watchlists: course.watchlists,
         prerequisites: course.prerequisites ?? [],
-        school: course.faculty,
-        slug: course.course_code,
+        school: course.school,
+        slug: course.code,
         image: course.color,
       })
-    }
+    
   }
 
   // let tempArray = Object.entries(hashMap)
   // let finalArray = tempArray
 
-  // for (let faculty of finalArray) {
-  //   faculty.push(faculty[1][0].length)
+  // for (let school of finalArray) {
+  //   school.push(school[1][0].length)
   // }
 
   /* 
   response should look like this:
   [{
-    'faculty': '',
+    'school': '',
     'courses': [],
     'courseCount': '', 
   },
   {    
-    'faculty': '',
+    'school': '',
     'courses': [],
     'courseCount': '', 
   }]
@@ -97,23 +86,23 @@ router.get('/', async (req, res) => {
 
   const response = []
 
-  for (let faculty in hashMap) {
-    const facultyDetails = facultyMap[faculty] || {
+  for (let school in hashMap) {
+    const schoolDetails = schoolMap[school] || {
       description: 'No description available.',
     }
 
-    let newfaculty = {
-      key: faculty, //faculty name
-      slug: faculty,
-      name: faculty,
-      courseKeys: hashMap[faculty].courseKeys, // array of all courseKeys
-      courses: hashMap[faculty].courses, //might not be neccessary
-      description: facultyDetails.description,
-      coursesCount: hashMap[faculty].courses.length,
+    let newschool = {
+      key: school, //school name
+      slug: school,
+      name: school,
+      courseKeys: hashMap[school].courseKeys, // array of all courseKeys
+      courses: hashMap[school].courses, //might not be neccessary
+      description: schoolDetails.description,
+      coursesCount: hashMap[school].courses.length,
       creator: {key: 'dummy'},
     }
 
-    response.push(newfaculty)
+    response.push(newschool)
   }
 
   res.json(response)
