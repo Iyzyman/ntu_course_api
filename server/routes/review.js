@@ -34,7 +34,7 @@ router.get('/:id', async (req, res) => {
   let {data: Reviews, error: ReviewsError} = await supabase
     .from('Reviews')
     .select('*')
-    .eq('course_code', req.params.id)
+    .eq('code', req.params.id)
 
   let {data: CourseCode, error: CourseCodeError} = await supabase
     .from('courses')

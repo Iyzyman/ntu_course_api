@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
       .from('CourseLikes')
       .select('*')
       .eq('user_id', user_id)
-      .eq('course_code', course_code)
+      .eq('code', course_code)
       .single();
 
     if (existingLike) {
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
     await supabase
       .from('CourseData')
       .update({ like_count: supabase.raw('like_count + 1') })
-      .eq('course_code', course_code);
+      .eq('code', course_code);
 
     res.status(200).send({ message: 'Course liked successfully' });
   } catch (err) {
@@ -48,7 +48,7 @@ router.delete('/', async (req, res) => {
       .from('CourseLikes')
       .select('*')
       .eq('user_id', user_id)
-      .eq('course_code', course_code)
+      .eq('code', course_code)
       .single();
 
     if (!existingLike) {
@@ -59,12 +59,12 @@ router.delete('/', async (req, res) => {
       .from('CourseLikes')
       .delete()
       .eq('user_id', user_id)
-      .eq('course_code', course_code);
+      .eq('code', course_code);
 
     await supabase
       .from('CourseData')
       .update({ like_count: supabase.raw('like_count - 1') })
-      .eq('course_code', course_code);
+      .eq('code', course_code);
 
     res.status(200).send({ message: 'Course unliked successfully' });
   } catch (err) {
@@ -85,7 +85,7 @@ router.get('/userLikes', async (req, res) => {
     // Query CourseLikes table to get all liked course codes for the user
     let { data: likedCourses, error } = await supabase
       .from('CourseLikes')
-      .select('course_code')
+      .select('code')
       .eq('user_id', user_id);
 
     if (error) {
@@ -97,11 +97,11 @@ router.get('/userLikes', async (req, res) => {
     }
 
     // Fetch course details for each course_code in the likedCourses
-    const courseCodes = likedCourses.map(item => item.course_code);
+    const courseCodes = likedCourses.map(item => item.code);
     let { data: courses, error: courseError } = await supabase
       .from('CourseData')
       .select('*')
-      .in('course_code', courseCodes);
+      .in('code', courseCodes);
 
     if (courseError) {
       return res.status(500).send({ error: courseError.message });

@@ -7,7 +7,7 @@ router.get('/all', async (req, res) => {
   try {
     let { data: courses, error } = await supabase
       .from('CourseData')
-      .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags'); 
+      .select('code, title, description, aus, school, likes, watchlists, color, prerequisites, tags'); 
 
     if (error) {
       console.error('Error fetching courses:', error);

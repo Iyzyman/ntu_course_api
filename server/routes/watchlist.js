@@ -13,18 +13,18 @@ router.get('/', async (req, res) => {
   try {
     let { data: watchlist } = await supabase
       .from('WatchList')
-      .select('course_code')
+      .select('code')
       .eq('user_id', user_id);
 
     if (watchlist.length === 0) {
       return res.status(404).send({ message: 'No courses found in the watchlist' });
     }
 
-    const courseCodes = watchlist.map(item => item.course_code);
+    const courseCodes = watchlist.map(item => item.code);
     let { data: courses } = await supabase
       .from('CourseData')
       .select('*')
-      .in('course_code', courseCodes);
+      .in('code', courseCodes);
 
     res.status(200).send(courses);
   } catch (err) {
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
       .from('WatchList')
       .select('*')
       .eq('user_id', user_id)
-      .eq('course_code', course_code)
+      .eq('code', course_code)
       .single();
 
     if (existingEntry) {
@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
     await supabase
       .from('CourseData')
       .update({ watchlists: supabase.raw('watchlists + 1') })  // Increment watchlists
-      .eq('course_code', course_code);
+      .eq('code', course_code);
 
     res.status(200).send({ message: 'Course added to watchlist successfully' });
   } catch (err) {
@@ -83,13 +83,13 @@ router.delete('/', async (req, res) => {
       .from('WatchList')
       .delete()
       .eq('user_id', user_id)
-      .eq('course_code', course_code);
+      .eq('code', course_code);
 
     // Decrement the watchlists count in CourseData
     await supabase
       .from('CourseData')
       .update({ watchlists: supabase.raw('watchlists - 1') })  // Decrement watchlists
-      .eq('course_code', course_code);
+      .eq('code', course_code);
 
     res.status(200).send({ message: 'Course removed from watchlist successfully' });
   } catch (err) {

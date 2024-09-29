@@ -4,65 +4,80 @@ const router = express.Router();
 
 // Helper function to map time period in months to SQL interval format
 function getTimePeriodInterval(months) {
-  if ([3, 6, 12].includes(months)) {
-    return `${months} months`;
-  }
-  return null;
+  const periodMapping = {
+    3: 'threeMonths',
+    6: 'sixMonths',
+    12: 'year',
+  };
+  return periodMapping[months] || null;
 }
 
-// Route to get the top 10 trending courses based on time period, with an optional faculty filter
+// Function to fetch trending courses for a specific period
+async function fetchTrendingCoursesForPeriod(months, faculty) {
+  const timePeriodInterval = `${months} months`;
+
+  let { data: trendingCourses, error } = await supabase
+    .rpc('get_trending_courses', { time_period: timePeriodInterval });
+
+  if (error) {
+    console.error(`Error fetching trending courses for ${months} months:`, error);
+    return { error: 'Error fetching trending courses' };
+  }
+
+  if (!trendingCourses || trendingCourses.length === 0) {
+    return []; // Return empty array if no trending courses are found
+  }
+
+  const courseCodes = trendingCourses.map(course => course.course_code); // Use 'course_code' instead of 'code'
+  let courseQuery = supabase.from('CourseData').select('*').in('code', courseCodes);
+
+  if (faculty) {
+    courseQuery = courseQuery.eq('faculty', faculty); // Apply faculty filter if provided
+  }
+
+  let { data: courseDetails, error: courseError } = await courseQuery;
+
+  if (courseError) {
+    console.error(`Error fetching course details for ${months} months:`, courseError);
+    return { error: 'Error fetching course details.' };
+  }
+
+  // Combine course details with like counts
+  const result = courseDetails.map(course => ({
+    ...course,
+    likes: trendingCourses.find(tc => tc.course_code === course.code).likes
+  }));
+
+  return result;
+}
+
+// Route to get trending courses categorized by time period
 router.get('/', async (req, res) => {
-  const time_period = parseInt(req.query.time_period); // Extract time period from query parameters and convert to integer
   const faculty = req.query.faculty; // Extract faculty from query parameters
 
-  // Validate input
-  if (!time_period || ![3, 6, 12].includes(time_period)) {
-    return res.status(400).send({ error: 'Invalid or missing time period. Choose 3, 6, or 12.' });
-  }
-
-  const timePeriodInterval = getTimePeriodInterval(time_period);
-  if (!timePeriodInterval) {
-    return res.status(400).send({ error: 'Invalid time period provided.' });
-  }
-
   try {
-    // Call the Supabase RPC
-    let { data: trendingCourses, error } = await supabase
-      .rpc('get_trending_courses', { time_period: timePeriodInterval });
+    // Fetch trending courses for 3, 6, and 12 months
+    const [threeMonths, sixMonths, year] = await Promise.all([
+      fetchTrendingCoursesForPeriod(3, faculty),
+      fetchTrendingCoursesForPeriod(6, faculty),
+      fetchTrendingCoursesForPeriod(12, faculty)
+    ]);
 
-    if (error) {
-      console.error('Error fetching trending courses:', error);
-      return res.status(500).send({ error: 'Error fetching trending courses' });
+    // If any error occurs during the course fetching process, return an error response
+    if (threeMonths.error || sixMonths.error || year.error) {
+      return res.status(500).send({
+        error: threeMonths.error || sixMonths.error || year.error
+      });
     }
 
-    if (!trendingCourses || trendingCourses.length === 0) {
-      return res.status(404).send({ message: 'No trending courses found for the given time period.' });
-    }
+    // Structure the result in the desired format
+    const results = {
+      threeMonths,
+      sixMonths,
+      year,
+    };
 
-    // Fetch detailed information about the courses
-    const courseCodes = trendingCourses.map(course => course.course_code);
-
-    // Modify the query to include the faculty filter if provided
-    let courseQuery = supabase.from('CourseData').select('*').in('course_code', courseCodes);
-    
-    if (faculty) {
-      courseQuery = courseQuery.eq('faculty', faculty); // Apply faculty filter if provided
-    }
-
-    let { data: courseDetails, error: courseError } = await courseQuery;
-
-    if (courseError) {
-      console.error('Error fetching course details:', courseError);
-      return res.status(500).send({ error: 'Error fetching course details.' });
-    }
-
-    // Combine course details with like counts
-    const result = courseDetails.map(course => ({
-      ...course,
-      like_count: trendingCourses.find(tc => tc.course_code === course.course_code).like_count
-    }));
-
-    res.status(200).send(result);
+    res.status(200).send({ results });
 
   } catch (err) {
     console.error('Internal server error:', err);

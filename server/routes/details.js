@@ -14,9 +14,25 @@ router.get('/', async (req, res) => {
   try {
     let { data: course, error } = await supabase
       .from('CourseData')
-      .select('course_code, course_title, course_description, aus, faculty, likes, watchlists, color, prerequisites, tags')
-      .eq('course_code', course_code)
+      .select('code, title, description, aus, school, likes, watchlists, color, prerequisites, tags')
+      .eq('code', course_code)
       .single();
+
+    if (course.prerequisites && course.prerequisites.length > 0) {
+      const prerequisiteCodes = course.prerequisites;
+    
+      // Fetch details for each prerequisite
+      const { data: prerequisiteCourses, error: prerequisiteError } = await supabase
+        .from('CourseData')
+        .select('code, title, likes, watchlists, color')
+        .in('code', prerequisiteCodes); // Using the `in` clause to get all at once
+    
+      if (prerequisiteError) {
+        console.error("Error fetching prerequisites:", prerequisiteError);
+      } else {
+        course.prerequisites = prerequisiteCourses;
+      }
+    }
 
     if (error) {
       console.error('Error fetching course details:', error);
