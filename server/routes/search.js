@@ -25,13 +25,15 @@ router.get('/', async (req, res) => {
   try {
     // Calculate offset for pagination
     const offset = (page - 1) * per_page;
+const end = offset + per_page - 1;
 
     // Fetch data from 'CourseData' table, querying by course_code or title with pagination
     let { data: courses, error, count } = await supabase
       .from('CourseData')
       .select('code, title, description, aus, school, likes, watchlists, color, prerequisites, tags', { count: 'exact' })
       .or(`code.ilike.%${query}%,title.ilike.%${query}%`)
-      .range(offset, offset + per_page - 1); // Apply pagination using range
+      .range(offset, end)
+      .limit(per_page);
 
     if (error) {
       console.error('Error fetching courses:', error);
