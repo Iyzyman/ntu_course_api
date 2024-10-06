@@ -46,7 +46,7 @@ const watchlistRouter = require('./routes/watchlist') //http://localhost:3001/ap
 app.use('/api/watchlist', watchlistRouter)
 
 const likesRouter = require('./routes/like') //http://localhost:3001/api/likedCourses/userLikes?user_id=123
-app.use('/api/likedCourses', likesRouter)
+app.use('/api/like', likesRouter)
 
 const trendingRouter = require('./routes/trending') //http://localhost:3001/api/trending?time_period=3
 app.use('/api/trending', trendingRouter) //By Faculty: http://localhost:3001/api/trending?time_period=3&faculty=NBS

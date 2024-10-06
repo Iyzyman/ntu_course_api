@@ -5,7 +5,6 @@ const router = express.Router();
 // Route to like a course
 router.post('/', async (req, res) => {
   const { user_id, course_code } = req.body;
-
   if (!user_id || !course_code) {
     return res.status(400).send({ error: 'User ID and Course Code are required' });
   }
@@ -18,20 +17,20 @@ router.post('/', async (req, res) => {
       .eq('code', course_code)
       .single();
 
+
+
     if (existingLike) {
       return res.status(400).send({ error: 'Course is already liked by the user' });
     }
 
-    await supabase.from('CourseLikes').insert([{ user_id, course_code }]);
+    await supabase.from('CourseLikes').insert([{ user_id, code: course_code }])
 
-    await supabase
-      .from('CourseData')
-      .update({ like_count: supabase.raw('like_count + 1') })
-      .eq('code', course_code);
 
-    res.status(200).send({ message: 'Course liked successfully' });
+    await supabase.rpc('increment_likes', { x: 1, course_code: course_code })
+
+    res.status(201).send({ message: 'Course liked successfully' });
   } catch (err) {
-    res.status(500).send({ error: 'Internal server error' });
+    res.status(500).send({ error: 'Internal Server Error' });
   }
 });
 
@@ -61,13 +60,40 @@ router.delete('/', async (req, res) => {
       .eq('user_id', user_id)
       .eq('code', course_code);
 
-    await supabase
-      .from('CourseData')
-      .update({ like_count: supabase.raw('like_count - 1') })
-      .eq('code', course_code);
+    await supabase.rpc('increment_likes', { x: -1, course_code: course_code })
 
     res.status(200).send({ message: 'Course unliked successfully' });
   } catch (err) {
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
+
+// Route to check if a course is liked by the user
+router.get('/', async (req, res) => {
+  const { user_id, course_code } = req.query;
+  // Validate input
+  if (!user_id || !course_code) {
+    return res.status(400).send({ error: 'User ID and Course Code are required' });
+  }
+
+  try {
+    // Check if the course is already liked by the user
+    let { data: existingLike } = await supabase
+      .from('CourseLikes')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('code', course_code)
+      .single();
+
+
+    // If row exists, return true; else, return false
+    if (existingLike) {
+      return res.status(200).send({ liked: true });
+    } else {
+      return res.status(200).send({ liked: false });
+    }
+  } catch (err) {
+
     res.status(500).send({ error: 'Internal server error' });
   }
 });
