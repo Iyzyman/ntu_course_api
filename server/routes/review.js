@@ -3,10 +3,10 @@ const supabase = require('../supabase')
 const router = express.Router()
 
 router.post('/putReview', async (req, res) => {
-  const {data, error} = await supabase
+  const { data, error } = await supabase
     .from('Reviews')
     .upsert({
-      course_id: req.body['course_id'],
+      code: req.body['course_id'],
       rating: {
         // review score
         'Content Usefulness': req.body['rating']['Content Usefulness'],
@@ -24,59 +24,69 @@ router.post('/putReview', async (req, res) => {
     .select()
 
   if (error) {
-    res.send(error)
+    console.error(error)
+    res.status(400).send(error)
   } else {
-    res.send(data)
+    res.status(200).send(data)
   }
 })
 
 router.get('/:id', async (req, res) => {
-  let {data: Reviews, error: ReviewsError} = await supabase
-    .from('Reviews')
-    .select('*')
-    .eq('code', req.params.id)
+  try {
+    let { data: Reviews } = await supabase
+      .from('Reviews')
+      .select('*')
+      .eq('code', req.params.id)
 
-  let {data: CourseCode, error: CourseCodeError} = await supabase
-    .from('courses')
-    .select('ID')
-    .eq('courseCode', req.params.id)
+    let { data: CourseCode } = await supabase
+      .from('courses')
+      .select('ID')
+      .eq('courseCode', req.params.id)
 
-  // for calculating aggregate ratings
-  let contentUsefulness = 0
-  let lectureClarity = 0
-  let assignmentDifficulty = 0
-  let teamDep = 0
-  let overallWorkload = 0
+    if (Reviews === null || Reviews.length === 0) {
+      return res.status(404).send({ message: 'No reviews found' })
+    }
 
-  for (let review of Reviews) {
-    contentUsefulness += parseInt(review['ratingNew']['Content Usefulness'])
-    lectureClarity += parseInt(review['ratingNew']['Lecture Clarity'])
-    assignmentDifficulty += parseInt(
-      review['ratingNew']['Assignment Difficulty'],
-    )
-    teamDep += parseInt(review['ratingNew']['Team Dependency'])
-    overallWorkload += parseInt(review['ratingNew']['Overall Workload'])
+    // for calculating aggregate ratings
+    let contentUsefulness = 0
+    let lectureClarity = 0
+    let assignmentDifficulty = 0
+    let teamDep = 0
+    let overallWorkload = 0
+
+    for (let review of Reviews) {
+      contentUsefulness += parseInt(review['rating']['Content Usefulness'])
+      lectureClarity += parseInt(review['rating']['Lecture Clarity'])
+      assignmentDifficulty += parseInt(
+        review['rating']['Assignment Difficulty'],
+      )
+      teamDep += parseInt(review['rating']['Team Dependency'])
+      overallWorkload += parseInt(review['rating']['Overall Workload'])
+    }
+
+    contentUsefulness = contentUsefulness / Reviews.length
+    lectureClarity = lectureClarity / Reviews.length
+    assignmentDifficulty = assignmentDifficulty / Reviews.length
+    teamDep = teamDep / Reviews.length
+    overallWorkload = overallWorkload / Reviews.length
+
+    const response = {
+      course_id: CourseCode[0]['ID'],
+      rating: {
+        'Content Usefulness': contentUsefulness,
+        'Lecture Clarity': lectureClarity,
+        'Assignment Difficulty': assignmentDifficulty,
+        'Team Dependency': teamDep,
+        'Overall Workload': overallWorkload,
+      },
+      reviews: Reviews,
+    }
+
+    res.status(200).send(response)
+  } catch (error) {
+    console.error(error)
+    res.status(400).send(error)
   }
-
-  contentUsefulness = contentUsefulness / Reviews.length
-  lectureClarity = lectureClarity / Reviews.length
-  assignmentDifficulty = assignmentDifficulty / Reviews.length
-  teamDep = teamDep / Reviews.length
-  overallWorkload = overallWorkload / Reviews.length
-
-  const response = {
-    course_id: CourseCode[0]['ID'],
-    rating: {
-      'Content Usefulness': contentUsefulness,
-      'Lecture Clarity': lectureClarity,
-      'Assignment Difficulty': assignmentDifficulty,
-      'Team Dependency': teamDep,
-      'Overall Workload': overallWorkload,
-    },
-    reviews: Reviews,
-  }
-
-  res.send(response)
 })
 
 module.exports = router

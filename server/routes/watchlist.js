@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
       .select('code')
       .eq('user_id', user_id);
 
-    if (watchlist.length === 0) {
+    if (watchlist === null || watchlist.length === 0) {
       return res.status(404).send({ message: 'No courses found in the watchlist' });
     }
 
