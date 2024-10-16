@@ -56,6 +56,7 @@ router.get('/', async (req, res) => {
         school: course.school,
         slug: course.code,
         color: course.color,
+        tags: course.tags
       })
     
   }

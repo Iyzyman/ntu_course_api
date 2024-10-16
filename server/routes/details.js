@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
       // Fetch details for each prerequisite
       const { data: prerequisiteCourses, error: prerequisiteError } = await supabase
         .from('CourseData')
-        .select('code, title, likes, watchlists, color')
+        .select('code, title, description, aus, school, likes, watchlists, color, prerequisites, tags')
         .in('code', prerequisiteCodes); // Using the `in` clause to get all at once
     
       if (prerequisiteError) {
