@@ -60,7 +60,4 @@ app.use('/api/course', allcoursesRouter)
 const reviewRouter = require('./routes/review')
 app.use('/api/review', reviewRouter)
 
-const filterRouter = require('./routes/filter')
-app.use('/api/filter', filterRouter)
-
 app.listen(port, () => console.log(`Listening on port ${port}...`))
