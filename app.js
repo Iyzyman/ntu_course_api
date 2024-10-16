@@ -9,9 +9,10 @@ const port = process.env.PORT || 3001
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
-  }),
-)
+    origin: '*',
+  })
+);
+
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
 app.use(express.static('build'))
