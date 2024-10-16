@@ -15,7 +15,7 @@ router.get('/all', async (req, res) => {
     }
 
     // If no courses are found, return a 404 message
-    if (!courses || courses.length === 0) {
+    if (courses === null || courses.length === 0) {
       return res.status(404).send({ message: 'No courses found' });
     }
 
